@@ -1,4 +1,9 @@
 plot_distribution <- function(micro_array_data_file)
+# this function plots the distribution of log2 transformed probe intensities
+#     the input is a micro-array tab-delimited table
+#        the probe IDs are down the rows and the sample names across the columns
+#        the raw table is usually processed by a separate python script
+
 {
 
   library(ggplot2)

@@ -1,4 +1,8 @@
 probes_to_genes <- function(probe_txt)
+# this function converts probe IDs to gene symbols and collapses multiple symbols on their average value
+#     the input is a micro-array tab-delimited table
+#        the probe IDs are down the rows and the sample names across the columns
+#        the raw table is usually processed by a separate python script
 
 {
     #load the propper library
