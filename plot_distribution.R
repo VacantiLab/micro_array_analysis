@@ -17,13 +17,17 @@ plot_distribution <- function(micro_array_data_file)
 
   DATA_long <- FatToLongDF(DATA)
 
+  n_probes <- length(rownames(DATA))
+  print(n_probes)
+
 
   XLabel <- 'log2(Intensity)'
   YLabel <- 'Number of Probes'
   ggplot(DATA_long, aes_string(x='value')) +
-      geom_histogram(binwidth=1) +
+      #geom_histogram(binwidth=1) +
       labs(x = XLabel) +
-      labs(y = YLabel)
+      labs(y = YLabel) +
+      geom_density(alpha=0.2,fill='#FF6666')
 
   pdf_width <- 4
   pdf_height <- 4
