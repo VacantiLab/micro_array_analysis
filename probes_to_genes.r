@@ -1,15 +1,21 @@
-probes_to_genes <- function(probe_txt)
+probes_to_genes <- function(data_set)
 # this function converts probe IDs to gene symbols and collapses multiple symbols on their average value
 #     the input is a micro-array tab-delimited table
+#     values must be raw values, NOT log2 transformed
 #        the probe IDs are down the rows and the sample names across the columns
 #        the raw table is usually processed by a separate python script
+# the hgu133plus2.db package must be installed with the following commands prior to running
+#     source("https://bioconductor.org/biocLite.R")
+#     biocLite("hgu133plus2.db")
+
 
 {
     #load the propper library
     library('hgu133plus2.db')
 
     #read the data from the file into a data frame using a user-defined function
-    DATA <- read_txt_to_df(probe_txt)
+    if (is.character(data_set)){DATA <- read_txt_to_df(data_set)}
+    if (!is.character(data_set)){DATA <- data_set}
 
     #the rownames of the data frame are the microarray probes
     ids <- rownames(DATA)

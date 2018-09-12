@@ -13,14 +13,61 @@ plot_distribution <- function(micro_array_data_file)
   #read the data from the file into a data frame using a user-defined function
   DATA <- read_txt_to_df(micro_array_data_file)
 
+  #record the number of samples
+  n_samples <- length(colnames(DATA))
+
+  #record the number of probes present before filtering
+  n_probes <- length(rownames(DATA))
+
+  #log2 transform the data
   DATA <- log2(DATA)
 
+  #filter the probes
+  DATA_filtered <- DATA
+  filter_threshold <- 5
+  filter_criteria <- 0.2
+  counter <- 1
+  #probes_to_delete <- NULL
+  probes_to_delete <- rep(FALSE,n_probes)
+  for (probe in rownames(DATA))
+  {
+      array_of_interest <- DATA_filtered[probe,]
+      samples_meeting_criteria <- array_of_interest >= filter_threshold
+      n_meeting_threshold <- sum(samples_meeting_criteria)
+      fraction_meeting_threshold <- n_meeting_threshold/n_samples
+      criteria_met <- fraction_meeting_threshold >= filter_criteria
+      if (!criteria_met)
+      {
+          #probes_to_delete <- c(probes_to_delete, probe)
+          probes_to_delete[counter] <- TRUE
+      }
+
+      if (counter %% 100 == 0)
+      {
+          print(paste('probe being filtered: ',counter))
+      }
+      counter = counter + 1
+  }
+
+  #n_probes_to_delete <- length(probes_to_delete)
+  n_probes_to_delete <- sum(probes_to_delete)
+  n_probes_filtered <- n_probes - n_probes_to_delete
+
+  #create the filtered data frame
+  #rows_to_delete <- rownames(DATA_filtered) %in% probes_to_delete
+  #rows_to_keep <- !rows_to_delete
+  rows_to_keep <- !probes_to_delete
+  DATA_filtered <- DATA_filtered[rows_to_keep,]
+
+
+  #put the data in long format
+  #    columns correspond to probe ID, intensity, and sample ID
+  print('putting the data in long data frame format')
   DATA_long <- FatToLongDF(DATA)
+  DATA_filtered_long <- FatToLongDF(DATA_filtered)
 
-  n_probes <- length(rownames(DATA))
-  print(n_probes)
-
-
+  print('plotting the intensity distributions')
+  #plot the distribution of the probe density in the data
   XLabel <- 'log2(Intensity)'
   YLabel <- 'Number of Probes'
   ggplot(DATA_long, aes_string(x='value')) +
@@ -31,9 +78,31 @@ plot_distribution <- function(micro_array_data_file)
 
   pdf_width <- 4
   pdf_height <- 4
-  ggsave(paste(output_directory,'probe_distribution.pdf',sep=''), width = pdf_width, height = pdf_height, dpi = 300, limitsize=FALSE)
+  ggsave(paste(output_directory,'data_probe_distribution.pdf',sep=''), width = pdf_width, height = pdf_height, dpi = 300, limitsize=FALSE)
 
-  return()
+  #plot the distribution of the probe density in the filtered data
+  XLabel <- 'log2(Intensity)'
+  YLabel <- 'Number of Probes'
+  ggplot(DATA_filtered_long, aes_string(x='value')) +
+      #geom_histogram(binwidth=1) +
+      labs(x = XLabel) +
+      labs(y = YLabel) +
+      geom_density(alpha=0.2,fill='#FF6666')
+
+  pdf_width <- 4
+  pdf_height <- 4
+  ggsave(paste(output_directory,'data_filtered_probe_distribution.pdf',sep=''), width = pdf_width, height = pdf_height, dpi = 300, limitsize=FALSE)
+
+  #print('collapsing the filtered probes to gene symbols')
+  #DATA_gene_symbols <- probes_to_genes(data_set)
+
+  #transform data back to untransformed
+  DATA <- 2^DATA
+  DATA_filtered <- 2^DATA_filtered
+
+  #to_return <- list(DATA,DATA_filtered,DATA_gene_symbols)
+  to_return <- list(DATA,DATA_filtered)
+  return(to_return)
 
 }
 
